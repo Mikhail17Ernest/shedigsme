@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sam Digs Me</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body {
+      margin: 0;
+      background: #0b0f19;
+      color: #e9eefc;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .card {
+      width: min(520px, 92vw);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    }
+    h1 { margin: 0 0 10px; font-size: 28px; letter-spacing: 0.5px; }
+    p { margin: 8px 0; opacity: 0.9; line-height: 1.35; }
+    .arena {
+      position: relative;
+      margin-top: 16px;
+      height: 280px;
+      border-radius: 14px;
+      border: 1px dashed rgba(255,255,255,0.22);
+      background: rgba(0,0,0,0.18);
+      overflow: hidden;
+    }
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.08s ease;
+      position: absolute;
+      top: 0; left: 0;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.98); }
+
+    #yesBtn { background: #44d18a; color: #062012; }
+    #noBtn  { background: #ff5c7a; color: #2a0810; }
+
+    .hud {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+    #msg { font-weight: 650; }
+    .note { font-size: 12px; opacity: 0.75; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Sam Digs Me</h1>
+    <p>Pick your answer. (Spoiler: one of them is a coward 😭)</p>
+
+    <div class="arena" id="arena" aria-label="Game area">
+      <button class="btn" id="yesBtn">She Digs Miks</button>
+      <button class="btn" id="noBtn">No Chance</button>
+    </div>
+
+    <div class="hud">
+      <div class="pill">Wins: <span id="wins">0</span></div>
+      <div class="pill" id="msg">Go on then… choose.</div>
+      <div class="pill note">Tip: try click “No Chance” 😈</div>
+    </div>
+  </div>
+
+  <script>
+    const arena = document.getElementById("arena");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn  = document.getElementById("noBtn");
+    const msg    = document.getElementById("msg");
+    const winsEl = document.getElementById("wins");
+
+    let wins = 0;
+
+    // Place buttons nicely on load
+    function placeInitial() {
+      yesBtn.style.left = "18px";
+      yesBtn.style.top  = "18px";
+
+      // start "No Chance" somewhere else
+      moveNoBtn(true);
+    }
+
+    // Helper: clamp a value
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    // Move the "No Chance" button to a random spot in the arena
+    function moveNoBtn(initial = false) {
+      const a = arena.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      const padding = 10;
+      const maxX = a.width  - b.width  - padding;
+      const maxY = a.height - b.height - padding;
+
+      // Random position
+      const x = Math.random() * maxX + padding;
+      const y = Math.random() * maxY + padding;
+
+      noBtn.style.left = clamp(x, padding, maxX) + "px";
+      noBtn.style.top  = clamp(y, padding, maxY) + "px";
+
+      if (!initial) msg.textContent = "Nah nah nah 😭 try again.";
+    }
+
+    // YES click = win
+    yesBtn.addEventListener("click", () => {
+      wins++;
+      winsEl.textContent = wins;
+      const lines = [
+        "Correct. Obviously. 😌",
+        "She digs Miks. Case closed. ✅",
+        "W. Huge W. 🏆",
+        "That’s the spirit. 😏"
+      ];
+      msg.textContent = lines[Math.floor(Math.random() * lines.length)];
+    });
+
+    // Make "No Chance" dodge BEFORE you click it:
+    // - mouseenter for desktop
+    // - pointerdown for touch (moves as you tap)
+    // - focus for keyboard users
+    noBtn.addEventListener("mouseenter", () => moveNoBtn(false));
+    noBtn.addEventListener("pointerdown", (e) => {
+      // Prevent the actual click from landing
+      e.preventDefault();
+      moveNoBtn(false);
+    });
+    noBtn.addEventListener("focus", () => moveNoBtn(false));
+
+    // Just in case someone actually clicks it (rare), still dodge
+    noBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      moveNoBtn(false);
+    });
+
+    // Keep within bounds on resize
+    window.addEventListener("resize", () => moveNoBtn(true));
+
+    placeInitial();
+  </script>
+</body>
+</html>
